@@ -22,7 +22,7 @@ for k = 1:m
     else
         Ac = Oc + (Tc-Oc).*rand(n,1);
     end
-    % randomly generate 
+    % randomly generate alpha 
     
     % Contrator loop
     for i = 1:n

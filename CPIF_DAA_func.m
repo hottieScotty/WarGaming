@@ -14,7 +14,7 @@ function [] = CPIF_DAA_func(Oc,Tc,Pc,Cp,n,n_opt,tri)
 % Initialize
 m = 5000;   % number of iterations
 
-%% Loop for under-run case
+%% Loop for under-run case %%
 for k = 1:m
     % randomly generate actual cost according to triangular or uniform dist
     if (nargin == 7)

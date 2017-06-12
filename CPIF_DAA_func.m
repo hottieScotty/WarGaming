@@ -11,8 +11,22 @@ function [] = CPIF_DAA_func(Oc,Tc,Pc,Cp,n,n_opt,mode)
 %         target fee, max/min fee, adjustment formula, and initial profit
 %         conditions for under- and over-run cases
  
-% initialize
-m = 5000;   % number of iterations
+% number of iterations
+m = 5000;             
+
+% initialize running averages for under-run case
+plotGP_U = zeros(n,m);  
+plotSR_U = zeros(n,m);
+plotProf_U = zeros(n,m);
+plotGS_U = zeros(n,m);
+plotFt_U = zeros(n,m);
+
+% initialize running averages for over-run case
+plotGP_O = zeros(n,m);  
+plotSR_O = zeros(n,m);
+plotProf_O = zeros(n,m);
+plotGS_O = zeros(n,m);
+plotFt_O = zeros(n,m);
 
 %% Under-run case %%
 
@@ -30,6 +44,8 @@ for k = 1:m
     SR = zeros(n,1);
     Tp = zeros(n,1);
     GovPay = zeros(n,1);
+    Prof = zeros(n,1);
+    GovSav = zeros(n,1);
     
     % contractor loop to solve for optimal parameters
     for i = 1:n
@@ -48,13 +64,30 @@ for k = 1:m
         alpha(i) = 0.5 + (2-0.5)*rand;
     
         % calculate optimal contract parameters
-        [SR(i),Tp(i),GovPay(i)] = CPIF_DAA_calcU(alpha(i),Ac(i),Tc,Cp,i,n_opt);
+        [SR(i),Tp(i),GovPay(i),Prof(i),GovSav(i)] = CPIF_DAA_calcU(alpha(i),Ac(i),Tc,Cp,i,n_opt);
     end
+    
+    % update running averages
+    if (k == 1)
+        plotGP_U(:,k) = plotGP_U(:,k) + GovPay;
+        plotSR_U(:,k) = plotSR_U(:,k) + SR;
+        plotProf_U(:,k) = plotProf_U(:,k) + Prof;
+        plotGS_U(:,k) = plotGS_U(:,k) + GovSav;
+    else
+        plotGP_U(:,k) = (k-1).*plotGP_U(:,k-1) + GovPay;
+        plotSR_U(:,k) = (k-1).*plotSR_U(:,k-1) + SR;
+        plotProf_U(:,k) = (k-1).*plotProf_U(:,k-1) + Prof;
+        plotGS_U(:,k) = (k-1).*plotGS_U(:,k-1) + GovSav;
+    end
+    plotGP_U(:,k) = plotGP_U(:,k)./k;
+    plotSR_U(:,k) = plotSR_U(:,k)./k;
+    plotProf_U(:,k) = plotProf_U(:,k)./k;
+    plotGS_U(:,k) = plotGS_U(:,k)./k;
     
     % select winning contrator
     [~,index] = min(GovPay);
     
-    % update averages
+    % update averages for winning contract
     avgSR = avgSR + SR(index);
     avgTp = avgTp + Tp(index);
     avgGovPay = avgGovPay + GovPay(index);
@@ -91,6 +124,8 @@ for k = 1:m
     SR = zeros(n,1);
     Tp = zeros(n,1);
     GovPay = zeros(n,1);
+    Prof = zeros(n,1);
+    GovSav = zeros(n,1);
     
     % contractor loop to solve for optimal parameters
     for i = 1:n
@@ -110,8 +145,25 @@ for k = 1:m
         beta(i) = low + (1-low)*rand;
     
         % calculate optimal contract parameters
-        [SR(i),Tp(i),GovPay(i)] = CPIF_DAA_calcO(beta(i),Ac(i),Tc,Cp,i,n_opt);
+        [SR(i),Tp(i),GovPay(i),Prof(i),GovSav(i)] = CPIF_DAA_calcO(beta(i),Ac(i),Tc,Cp,i,n_opt);
     end
+    
+    % update running averages
+    if (k == 1)
+        plotGP_O(:,k) = plotGP_O(:,k) + GovPay;
+        plotSR_O(:,k) = plotSR_O(:,k) + SR;
+        plotProf_O(:,k) = plotProf_O(:,k) + Prof;
+        plotGS_O(:,k) = plotGS_O(:,k) + GovSav;
+    else
+        plotGP_O(:,k) = (k-1).*plotGP_O(:,k-1) + GovPay;
+        plotSR_O(:,k) = (k-1).*plotSR_O(:,k-1) + SR;
+        plotProf_O(:,k) = (k-1).*plotProf_O(:,k-1) + Prof;
+        plotGS_O(:,k) = (k-1).*plotGS_O(:,k-1) + GovSav;
+    end
+    plotGP_O(:,k) = plotGP_O(:,k)./k;
+    plotSR_O(:,k) = plotSR_O(:,k)./k;
+    plotProf_O(:,k) = plotProf_O(:,k)./k;
+    plotGS_O(:,k) = plotGS_O(:,k)./k;
     
     % select winning contrator
     [~,index] = min(GovPay);
@@ -161,5 +213,115 @@ disp(['The adjustment formula for calculating the optimum fee for the over-run c
 disp(['The optimum initial condition for government savings in the over-run case is ' num2str(PCFO_G_0) '.'])
 disp(['The optimum initial condition for contractor profit in the over-run case is ' num2str(PCFO_K_0) '.'])
 fprintf(['\n'])
+
+%% Plot Averages %%
+
+% average under- and over-run cases
+plotGP = (plotGP_U + plotGP_O)./2;
+plotProf = (plotProf_U + plotProf_O)./2;
+plotGS = (plotGS_U + plotGS_O)./2;
+
+% initialize x-axis
+x = 1:m;
+
+% figure settings
+figure('units','normalized','outerposition',[0 0 1 1])
+
+% plot government payment
+subplot(1,2,1)
+%set(0,'DefaultAxesFontSize', 18, 'DefaultTextFontSize', 20)
+for i = 1:n
+    plot(x,plotGP(i,:)) %,'LineWidth',4
+    hold on
+end
+xlabel('Runs');
+ylabel('Average Goverment Payment')
+title('Goverment Payment vs Runs : DAA-AWG');
+
+% plot government savings
+subplot(1,2,2)
+%set(0,'DefaultAxesFontSize', 18, 'DefaultTextFontSize', 20)
+for i = 1:n
+    plot(x,plotGS(i,:))
+    hold on
+end
+xlabel('Runs');
+ylabel('Average Goverment Savings')
+title('Goverment Savings vs Runs : DAA-AWG');
+
+% plot under-run sharing ratio
+figure('units','normalized','outerposition',[0 0 1 1])
+subplot(1,2,1)
+%set(0,'DefaultAxesFontSize', 18, 'DefaultTextFontSize', 20)
+for i = 1:n
+    plot(x,plotSR_U(i,:))
+    hold on
+end
+xlabel('Runs');
+ylabel('Average Share Ratio')
+title('Overun Contractor Share Ratio vs Runs: DAA-AWG');
+
+% plot over-run sharing ratio
+subplot(1,2,2)
+%set(0,'DefaultAxesFontSize', 18, 'DefaultTextFontSize', 20)
+for i = 1:n
+    plot(x,plotSR_O(i,:))
+    hold on
+end
+xlabel('Runs');
+ylabel('Average Share Ratio')
+title('Underrun Contractor Share Ratio vs Runs: DAA-AWG');
+
+%{
+figure('units','normalized','outerposition',[0 0 1 1])
+subplot(1,2,1)
+%set(0,'DefaultAxesFontSize', 18, 'DefaultTextFontSize', 20)
+for i = 1:n
+    plot(x,plotFT(i,:))
+    hold on
+end
+xlabel('Runs');
+ylabel('Average Fee')
+title('Average Fee at Target Price vs Runs  : DAA-AWG');
+
+subplot(1,2,2)
+%set(0,'DefaultAxesFontSize', 18, 'DefaultTextFontSize', 20)
+for i = 1:n
+    plot(x,plotFO(i,:))
+    hold on
+end
+xlabel('Runs');
+ylabel('Average Fee')
+title('Average Fee at Optimistic Price vs Runs  : DAA-AWG');
+
+figure
+%set(0,'DefaultAxesFontSize', 18, 'DefaultTextFontSize', 20)
+pie(avgWins);
+title('Percent Won By Each Contractor')
+%}
+
+% plot contractor profit
+figure('units','normalized','outerposition',[0 0 1 1])
+subplot(1,2,1)
+%set(0,'DefaultAxesFontSize', 18, 'DefaultTextFontSize', 20)
+for i = 1:n
+    plot(x,plotProf(i,:))
+    hold on
+end
+xlabel('Runs');
+ylabel('Contractor Profit Per Contract')
+title('Contractor Profit Average vs Runs  : KTR-AWG');
+
+%{
+subplot(1,2,2)
+%set(0,'DefaultAxesFontSize', 18, 'DefaultTextFontSize', 20)
+for i = 1:n
+    plot(x,plotTotalP(i,:))
+    hold on
+end
+xlabel('Runs');
+ylabel('Total Contractor Profit')
+title('Contractor Profit vs Runs  : KTR-AWG');
+%}
     
 end

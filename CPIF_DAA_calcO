@@ -1,9 +1,0 @@
-function [SR,Tp,GovPay] = CPIF_DAA_calcO(beta,Ac,Tc,Cp)
-
-SR = 1 - (4/3)*(1-beta)*(Cp-Ac)/(Ac-Tc)
-
-Tp = Cp - (3/2)*(1-SR)*(Ac - Tc)
-
-GovPay = Ac + (Tp - Tc) + SR*(Ac - Tc)
-
-end

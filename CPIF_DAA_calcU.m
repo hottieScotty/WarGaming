@@ -1,45 +1,33 @@
-function [SR,Tp,GovPay,profit,GovS] = CPIF_DAA_calcU(alpha,Ac,Tc,Cp,i,n_opt)
+function [SR,Tp,GovPay,profit,GovS] = CPIF_DAA_calcU(alpha,Ac,Oc,Tc,Pc,Cp,i,n_opt,exProf)
 % solves for some optimal CPIF contract parameters
 % called in CPIF_DAA_func.m
 
-% inputs: alpha (gov savings control parameter), actual cost, target cost,
-%         ceiling price, current KTR number, number of optimal bidders
+% inputs: alpha (gov savings control parameter), actual cost, optimistic
+%         cost, target cost, pessimistic cost, ceiling price, current KTR 
+%         number, number of optimal bidders, expected profit
 
-% output: optimal sharing ratio, target price, government payment
+% output: optimal sharing ratio, target price, government payment,
+%         contractor profit, government savings
 
 %% --------------------------------------------------------------------- %%
 % compute sharing ratio
 if (i <= n_opt)
-    SR = 2*(2-alpha)*(1/3);     % optimal SR
+    SR = 2*(2-alpha)*(1/3);                 % optimal SR
 else
-    SR = 0.5;                   % non-optimal SR (must fix)
+    SR = KTR_Share(exProf,Oc,Tc,Pc,Cp);
+    SR = SR(1);                             % non-optimal SR (must fix)
 end
 
 % compute target price
-Tp = Cp - 1.5*SR*(Tc - Ac);
+Tp = Cp-1.5*SR*(Tc-Ac);
 
 % compute government payment
-GovPay = Ac + (Tp - Tc) + SR*(Tc - Ac);
+GovPay = Ac+(Tp-Tc)+SR*(Tc-Ac);
 
-%{
-%compute Profit and Government Savings
-    PGO = (2*(Tc-Ac) - Cp); %benchmark payoff gov and payoff ktr, from slides
-    PKO = (Tp-Tc);
-    PGF = @(s) Ac + (Tp - Tc) + s*(Tc - Ac); %final (positive) payoff gov function
-    PKF = @(s) (Tp - Tc)+(s)*(Tc - Ac); %final payoff function ktr
-    PK = @(s) (s)*(Tc - Ac); %payoff function for maximzation
+% compute contractor profit
+profit = (Tp-Tc)+SR*(Tc-Ac);
 
-PG = @(s) 2*(1-s)*(Tc-Ac)-Tp; %one payoff gov function for optimization
-
-toMin = @(s) -(PG(s)-PGO)*(PK(s)-PKO); %minimizes negative of optimzation function from slides
-
-sRO = fminbnd(toMin, 0, 1); %matlab function which minimizes
-
-PCFG = PGF(sRO); %returns final payoff based on final payoff functions
-%}
-
-profit = (Tp - Tc)+SR*(Tc - Ac);
-
+% compute government savings
 GovS = Cp+(1-SR)*(Tc-Ac)-GovPay;
 
 end

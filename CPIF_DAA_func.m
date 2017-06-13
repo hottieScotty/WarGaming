@@ -259,6 +259,15 @@ if (shouldPlot)
     % figure settings
     figure('units','normalized','outerposition',[0 0 1 1])
     set(0,'DefaultAxesFontSize',12,'DefaultTextFontSize',10,'DefaultLineLineWidth',0.8)
+    
+    % write labels for graph legends
+    for i = 1:n
+        if (i <= n_opt)
+            labels{i} = strcat('KTR #',num2str(i),' bidding optimally');
+        else
+            labels{i} = strcat('KTR #',num2str(i),' bidding non-optimally');
+        end
+    end
 
     % plot government payment
     subplot(1,2,1)
@@ -267,8 +276,9 @@ if (shouldPlot)
         hold on
     end
     xlabel('Runs');
-    ylabel('Average Goverment Payment')
+    ylabel('Average Goverment Payment');
     title('Goverment Payment vs Runs');
+    legend(labels,'Location','northwest');
 
     % plot government savings
     subplot(1,2,2)
@@ -277,8 +287,9 @@ if (shouldPlot)
         hold on
     end
     xlabel('Runs');
-    ylabel('Average Goverment Savings')
+    ylabel('Average Goverment Savings');
     title('Goverment Savings vs Runs');
+    legend(labels,'Location','northwest');
 
     % plot under-run sharing ratio
     figure('units','normalized','outerposition',[0 0 1 1])
@@ -288,8 +299,10 @@ if (shouldPlot)
         hold on
     end
     xlabel('Runs');
-    ylabel('Average Sharing Ratio')
+    ylabel('Average Sharing Ratio');
     title('Under-run Contractor Sharing Ratio vs Runs');
+    axis([0 m 0 1]);
+    legend(labels,'Location','northwest');
 
     % plot over-run sharing ratio
     subplot(1,2,2)
@@ -298,8 +311,10 @@ if (shouldPlot)
         hold on
     end
     xlabel('Runs');
-    ylabel('Average Sharing Ratio')
+    ylabel('Average Sharing Ratio');
     title('Over-run Contractor Sharing Ratio vs Runs');
+    axis([0 m 0 1]);
+    legend(labels,'Location','northwest');
 
     %{
     figure('units','normalized','outerposition',[0 0 1 1])
@@ -309,8 +324,9 @@ if (shouldPlot)
         hold on
     end
     xlabel('Runs');
-    ylabel('Average Fee')
+    ylabel('Average Fee');
     title('Average Fee at Target Price vs Runs');
+    legend(labels,'Location','northwest');
 
     subplot(1,2,2)
     for i = 1:n
@@ -318,15 +334,17 @@ if (shouldPlot)
         hold on
     end
     xlabel('Runs');
-    ylabel('Average Fee')
+    ylabel('Average Fee');
     title('Average Fee at Optimistic Price vs Runs');
+    legend(labels,'Location','northwest');
     %}
 
     % pie chart of winning percentage
     figure
     avgWins = avgWins./m;
     pie(avgWins);
-    title('Percent Won By Each Contractor')
+    title('Percent Won By Each Contractor');
+    legend(labels,'Location','eastoutside');
 
     % plot average contractor profit
     figure('units','normalized','outerposition',[0 0 1 1])
@@ -336,8 +354,9 @@ if (shouldPlot)
         hold on
     end
     xlabel('Runs');
-    ylabel('Contractor Profit Per Contract')
+    ylabel('Contractor Profit Per Contract');
     title('Contractor Profit Average vs Runs');
+    legend(labels,'Location','northwest');
 
     % plot total contractor profit
     subplot(1,2,2)
@@ -346,8 +365,9 @@ if (shouldPlot)
         hold on
     end
     xlabel('Runs');
-    ylabel('Total Contractor Profit')
+    ylabel('Total Contractor Profit');
     title('Contractor Profit vs Runs');
+    legend(labels,'Location','northwest');
 end
  
 end

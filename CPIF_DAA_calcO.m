@@ -19,7 +19,7 @@ else
 end
 
 % compute target price
-Tp = Cp-1.5*SR*(Tc-Ac);
+Tp = Cp-1.5*(1-SR)*(Tc-Ac);
 
 % compute government payment
 GovPay = Ac+(Tp-Tc)+SR*(Tc-Ac);
